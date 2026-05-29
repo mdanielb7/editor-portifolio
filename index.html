@@ -1,288 +1,918 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sorteio JBL Go 4</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daniel Bastos — Editor de Vídeos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #111, #222);
-      color: #f0f0f0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-    }
+:root {
+  --red: #C8001A;
+  --red-glow: rgba(200,0,26,0.4);
+  --red-dim: rgba(200,0,26,0.12);
+  --white: #F5F0EB;
+  --offwhite: rgba(245,240,235,0.55);
+  --bg: #060404;
+  --card-bg: rgba(14,8,8,0.85);
+}
 
-    h1 {
-      font-size: 2.6rem;
-      color: #ff5500;
-      text-align: center;
-      margin: 30px 0;
-    }
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
 
-    .jbl-img {
-      width: 100%;
-      max-width: 280px;
-      height: auto;
-      margin-bottom: 20px;
-    }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  overflow-x: hidden;
+  cursor: none;
+}
 
-    #textinho {
-      max-width: 480px;
-      margin: 20px auto;
-      text-align: center;
-      line-height: 1.5;
-      font-size: 1.1rem;
-      color: #ddd;
-    }
+/* ─── CURSOR ─────────────────────────────────── */
+.cursor-dot {
+  width: 8px; height: 8px;
+  background: var(--white);
+  border-radius: 50%;
+  position: fixed;
+  top: 0; left: 0;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  z-index: 9999;
+  transition: width 0.2s, height 0.2s;
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(245,240,235,0.5);
+  border-radius: 50%;
+  position: fixed;
+  top: 0; left: 0;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  z-index: 9999;
+  transition: width 0.3s, height 0.3s, border-color 0.3s;
+}
+@media (hover: none) {
+  .cursor-dot, .cursor-ring { display: none; }
+  body { cursor: auto; }
+}
 
-    .contador {
-      font-size: 1.2rem;
-      color: #ff7777;
-      margin: 20px 0;
-      animation: blink 1.2s infinite;
-      text-align: center;
-    }
+/* ─── NOISE ──────────────────────────────────── */
+body::before {
+  content:'';
+  position: fixed;
+  inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.35;
+}
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
+/* ─── HERO ───────────────────────────────────── */
+header {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 0 8%;
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg-text {
+  position: absolute;
+  bottom: -60px; left: -10px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(180px, 22vw, 340px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(200,0,26,0.08);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -4px;
+  white-space: nowrap;
+}
+.hero-line {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 1px; height: 100%;
+  background: linear-gradient(to bottom, transparent, var(--red) 40%, transparent);
+  opacity: 0.2;
+}
+.hero-left {
+  padding-right: 60px;
+  animation: fadeUp 1s ease both;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 12px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.2s both;
+}
+.eyebrow::before { content:''; width: 32px; height: 1px; background: var(--red); }
 
-    form {
-      background: #151515;
-      padding: 25px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.8);
-    }
+.hero-aka {
+  font-size: 12px;
+  color: var(--offwhite);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.25s both;
+}
+.hero-aka span { color: var(--white); }
 
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 5px;
-      font-weight: 600;
-      color: #ccc;
-    }
+h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(72px, 8vw, 120px);
+  line-height: 0.9;
+  letter-spacing: -1px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.3s both;
+}
+h1 em {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  color: var(--red);
+  font-size: 1.05em;
+}
+.hero-desc {
+  max-width: 460px;
+  margin-top: 28px;
+  color: var(--offwhite);
+  font-size: 15px;
+  line-height: 1.85;
+  font-weight: 300;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.45s both;
+}
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 40px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.55s both;
+}
+.stat-item { display: flex; flex-direction: column; gap: 4px; }
+.stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 42px; color: var(--white); line-height: 1; }
+.stat-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--offwhite); font-weight: 300; }
 
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      background: #2a2a2a;
-      color: #fff;
-      font-size: 1rem;
-    }
+.hero-ctas {
+  display: flex;
+  gap: 16px;
+  margin-top: 44px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.65s both;
+}
 
-    textarea {
-      resize: vertical;
-    }
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--red);
+  color: var(--white);
+  text-decoration: none;
+  padding: 16px 32px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::before {
+  content:''; position: absolute; inset: 0;
+  background: rgba(255,255,255,0.1);
+  transform: translateX(-101%);
+  transition: transform 0.4s ease;
+}
+.btn-primary:hover::before { transform: translateX(0); }
+.btn-primary:hover { box-shadow: 0 0 40px var(--red-glow); transform: translateY(-2px); }
 
-    .cookies {
-      margin-top: 15px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      font-size: 0.95rem;
-      color: #bbb;
-    }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  color: var(--white);
+  text-decoration: none;
+  padding: 16px 32px;
+  border-radius: 4px;
+  border: 1px solid rgba(245,240,235,0.15);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+.btn-ghost:hover {
+  border-color: rgba(245,240,235,0.4);
+  background: rgba(245,240,235,0.04);
+  transform: translateY(-2px);
+}
 
-    .cookies input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #ff5500;
-    }
+/* PHOTO */
+.hero-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  opacity: 0;
+  animation: fadeIn 1.2s ease 0.4s both;
+}
+.photo-frame { position: relative; width: 440px; max-width: 90%; }
+.photo-frame img {
+  width: 100%;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  filter: contrast(1.05) saturate(0.9);
+  border-radius: 2px;
+}
+.photo-frame::before {
+  content:''; position: absolute; inset: -1px;
+  border: 1px solid rgba(200,0,26,0.3);
+  border-radius: 2px; z-index: 1; pointer-events: none;
+}
+.photo-frame::after {
+  content:''; position: absolute;
+  bottom: -20px; right: -20px;
+  width: 60%; height: 60%;
+  background: radial-gradient(ellipse, rgba(200,0,26,0.25), transparent 70%);
+  z-index: -1; border-radius: 50%; filter: blur(30px);
+}
+.photo-badge {
+  position: absolute;
+  bottom: -14px; left: -14px;
+  background: var(--bg);
+  border: 1px solid rgba(200,0,26,0.35);
+  padding: 14px 20px;
+  z-index: 2; border-radius: 3px;
+}
+.photo-badge p { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--red); font-weight: 500; }
+.photo-badge span { font-family: 'Bebas Neue', sans-serif; font-size: 26px; line-height: 1; color: var(--white); display: block; }
 
-    .cookies label {
-      margin: 0;
-      font-weight: normal;
-    }
+/* SCROLL HINT */
+.scroll-hint {
+  position: absolute;
+  bottom: 36px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  opacity: 0;
+  animation: fadeUp 1s ease 1.2s both;
+}
+.scroll-hint span { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--offwhite); }
+.scroll-line { width: 1px; height: 50px; background: linear-gradient(to bottom, var(--red), transparent); animation: scrollPulse 2s ease infinite; }
+@media (max-width: 900px) { .scroll-hint { display: none; } }
 
-    button {
-      width: 100%;
-      margin-top: 20px;
-      padding: 14px;
-      background-color: #ff5500;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
+/* ─── SECTIONS ───────────────────────────────── */
+section { padding: 110px 8%; position: relative; }
+.section-header {
+  display: flex; align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 60px; gap: 20px; flex-wrap: wrap;
+}
+.section-label {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 10px; font-weight: 500; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--red); margin-bottom: 14px;
+}
+.section-label::before { content:''; width: 24px; height: 1px; background: var(--red); }
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(44px, 5vw, 72px);
+  line-height: 0.95; letter-spacing: -0.5px;
+}
+.section-title em { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--red); }
+.section-desc { max-width: 360px; color: var(--offwhite); font-size: 14px; line-height: 1.8; font-weight: 300; }
 
-    button:hover {
-      background-color: #cc4400;
-    }
+/* ─── DIVIDER ────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(to right, var(--red) 0%, rgba(200,0,26,0.1) 30%, transparent);
+  margin: 0 8%; opacity: 0.4;
+}
 
-    /* POPUP */
-    #popup {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.85);
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      opacity: 0;
-      animation: fadeIn 0.5s ease forwards;
-    }
+/* ─── VIDEO LIST ─────────────────────────────── */
+.videos { display: flex; flex-direction: column; }
+.reel-card {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  align-items: center;
+  gap: 28px;
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(245,240,235,0.06);
+  text-decoration: none;
+  color: var(--white);
+  transition: all 0.25s ease;
+  cursor: none;
+  position: relative;
+}
+.reel-card:first-child { border-top: 1px solid rgba(245,240,235,0.06); }
+.reel-card::after {
+  content:''; position: absolute;
+  left: 0; bottom: -1px;
+  width: 0; height: 1px;
+  background: var(--red);
+  transition: width 0.4s ease;
+}
+.reel-card:hover::after { width: 100%; }
+.reel-card:hover { padding-left: 8px; }
+.reel-card:hover .reel-num { color: var(--red); }
+.reel-card:hover .reel-arrow { transform: translate(4px, -4px); color: var(--red); }
+.reel-num { font-family: 'Bebas Neue', sans-serif; font-size: 13px; color: rgba(245,240,235,0.2); letter-spacing: 2px; transition: color 0.25s; text-align: right; }
+.reel-info { display: flex; flex-direction: column; gap: 4px; }
+.reel-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(20px, 2.5vw, 28px); letter-spacing: 0.5px; line-height: 1; }
+.reel-meta { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--offwhite); font-weight: 300; }
+.reel-arrow { font-size: 18px; color: var(--offwhite); transition: all 0.25s ease; flex-shrink: 0; }
 
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-      }
-    }
+/* ─── SERVICES STRIP ─────────────────────────── */
+.services-strip {
+  background: rgba(200,0,26,0.04);
+  border-top: 1px solid rgba(200,0,26,0.12);
+  border-bottom: 1px solid rgba(200,0,26,0.12);
+  padding: 70px 8%;
+}
+.services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.service-item { padding: 30px 36px; border-right: 1px solid rgba(200,0,26,0.12); transition: background 0.3s; }
+.service-item:last-child { border-right: none; }
+.service-item:hover { background: rgba(200,0,26,0.06); }
+.service-icon {
+  width: 36px; height: 36px;
+  margin-bottom: 18px;
+  color: var(--red);
+  opacity: 0.7;
+}
+.service-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.5px; margin-bottom: 8px; color: var(--white); }
+.service-text { font-size: 13px; color: var(--offwhite); line-height: 1.7; font-weight: 300; }
 
-    #popup-content {
-      background: #1e1e1e;
-      padding: 30px;
-      border-radius: 10px;
-      text-align: center;
-      max-width: 90%;
-      width: 400px;
-      box-shadow: 0 0 20px #000;
-      transform: scale(0.8);
-      animation: popupZoom 0.5s ease forwards;
-    }
+/* ─── PROVA SOCIAL ───────────────────────────── */
+.proof-section {
+  padding: 110px 8%;
+  position: relative;
+}
+.proof-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.proof-video-wrap {
+  
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(200,0,26,0.2);
+  box-shadow: 0 0 60px rgba(200,0,26,0.15);
+}
+.sound-btn {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  z-index: 5;
 
-    @keyframes popupZoom {
-      to {
-        transform: scale(1);
-      }
-    }
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(14px);
 
-    #popup-content h2 {
-      color: #ff4444;
-      margin-bottom: 15px;
-    }
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #fff;
 
-    #popup-content p, .alerta {
-      color: #ccc;
-      font-size: 0.95rem;
-      margin-top: 10px;
-    }
+  padding: 12px 18px;
+  border-radius: 999px;
 
-    .alerta {
-      background: #2a0000;
-      padding: 15px;
-      border: 1px solid #aa0000;
-      border-radius: 8px;
-      margin-top: 20px;
-    }
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 
-    #popup-content button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #ff4444;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
+  cursor: pointer;
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 2rem;
-      }
+  transition: all 0.3s ease;
 
-      button {
-        font-size: 1rem;
-        padding: 12px;
-      }
+  opacity: 0;
+  transform: translateY(10px);
+}
 
-      .jbl-img {
-        max-width: 220px;
-      }
+.proof-video-wrap:hover .sound-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-      form {
-        padding: 20px;
-      }
+.sound-btn:hover {
+  background: rgba(200,0,26,0.85);
+  border-color: rgba(200,0,26,0.4);
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(200,0,26,0.35);
+}
 
-      #textinho {
-        max-width: 90%;
-        font-size: 1rem;
-      }
-    }
-  </style>
+@media (max-width: 900px) {
+  .sound-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.proof-video-wrap video {
+  width: 100%;
+  display: block;
+  border-radius: 4px;
+}
+.proof-video-wrap::before {
+  content:'';
+  position: absolute; inset: -1px;
+  border: 1px solid rgba(200,0,26,0.25);
+  border-radius: 4px;
+  z-index: 1; pointer-events: none;
+}
+.proof-content {}
+.proof-quote {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.3;
+  color: var(--white);
+  margin-bottom: 28px;
+  position: relative;
+  padding-left: 24px;
+}
+.proof-quote::before {
+  content:'';
+  position: absolute;
+  left: 0; top: 6px;
+  width: 3px; height: calc(100% - 12px);
+  background: var(--red);
+  border-radius: 2px;
+}
+.proof-author {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+.proof-author-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+.proof-author-role {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.proof-author-dot {
+  width: 4px; height: 4px;
+  background: var(--red);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* TikTok card */
+.tiktok-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(14,8,8,0.8);
+  border: 1px solid rgba(245,240,235,0.08);
+  border-radius: 6px;
+  padding: 16px 22px;
+  text-decoration: none;
+  color: var(--white);
+  transition: all 0.3s ease;
+  cursor: none;
+}
+.tiktok-card:hover {
+  border-color: rgba(245,240,235,0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+.tiktok-icon { flex-shrink: 0; }
+.tiktok-icon svg { width: 22px; height: 22px; fill: var(--white); opacity: 0.7; }
+.tiktok-info {}
+.tiktok-handle { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; }
+.tiktok-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--offwhite); }
+
+/* ─── CONTACT ────────────────────────────────── */
+.contact-section {
+  padding: 120px 8%;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.contact-section::before {
+  content:''; position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(200,0,26,0.1), transparent 65%);
+  pointer-events: none;
+}
+.contact-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 11px; font-weight: 500; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--red); margin-bottom: 24px;
+}
+.contact-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(60px, 8vw, 110px);
+  line-height: 0.9; letter-spacing: -1px; margin-bottom: 24px;
+}
+.contact-title em { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--red); }
+.contact-sub { max-width: 480px; margin: 0 auto 48px; color: var(--offwhite); font-size: 15px; line-height: 1.8; font-weight: 300; }
+.contact-links { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+
+/* ─── FOOTER ─────────────────────────────────── */
+footer {
+  padding: 32px 8%;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid rgba(245,240,235,0.05);
+  flex-wrap: wrap; gap: 16px;
+}
+footer p { font-size: 12px; color: rgba(245,240,235,0.25); letter-spacing: 1px; }
+.footer-mark { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--red); letter-spacing: 2px; }
+
+/* ─── WA FLOAT ───────────────────────────────── */
+.wa-float {
+  position: fixed; bottom: 28px; right: 28px; z-index: 999;
+  display: flex; align-items: center; gap: 10px;
+  background: #1DB954; color: #fff; text-decoration: none;
+  padding: 14px 22px; border-radius: 999px;
+  font-size: 13px; font-weight: 500; letter-spacing: 0.5px;
+  box-shadow: 0 8px 32px rgba(29,185,84,0.4);
+  transition: all 0.3s ease; cursor: none;
+}
+.wa-float:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 12px 48px rgba(29,185,84,0.6); }
+.wa-float img { width: 20px; height: 20px; }
+
+/* ─── ANIMATIONS ─────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(28px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; } to { opacity:1; }
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity:1; transform: scaleY(1); }
+  50% { opacity:0.3; transform: scaleY(0.6); }
+}
+.reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.22s; }
+.reveal-delay-3 { transition-delay: 0.34s; }
+
+/* ─── RESPONSIVE ─────────────────────────────── */
+@media (max-width: 900px) {
+  header { grid-template-columns: 1fr; text-align: center; padding: 100px 6% 80px; gap: 60px; }
+  .hero-left { padding-right: 0; }
+  .eyebrow { justify-content: center; }
+  .hero-stats { justify-content: center; }
+  .hero-ctas { justify-content: center; }
+  .hero-right { order: -1; }
+  .photo-frame { width: 280px; }
+  .hero-line { display: none; }
+  .section-header { flex-direction: column; align-items: flex-start; }
+  .services-grid { grid-template-columns: 1fr 1fr; }
+  .service-item:nth-child(2n) { border-right: none; }
+  .service-item:nth-child(n+3) { border-top: 1px solid rgba(200,0,26,0.12); }
+  .wa-float span { display: none; }
+  .wa-float { padding: 16px; border-radius: 50%; width: 54px; height: 54px; justify-content: center; }
+  body { cursor: auto; }
+  .proof-inner { grid-template-columns: 1fr; gap: 40px; }
+  .reel-card { cursor: auto; }
+  .tiktok-card { cursor: auto; }
+  .wa-float { cursor: auto; }
+}
+@media (max-width: 600px) {
+  .services-grid { grid-template-columns: 1fr; }
+  .service-item { border-right: none; border-bottom: 1px solid rgba(200,0,26,0.12); }
+  .service-item:last-child { border-bottom: none; }
+  .hero-bg-text { font-size: 120px; }
+}
+
+</style>
 </head>
 <body>
 
-  <h1>Sorteio Cedtec 2B - Ganhe uma JBL Go 4!</h1>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
 
-  <img class="jbl-img" src="jbl.webp" alt="JBL Go 4" />
+<!-- ─── HERO ──────────────────────────────────── -->
+<header>
+  <div class="hero-bg-text">EDIT</div>
+  <div class="hero-line"></div>
 
-  <p id="textinho">
-    Obrigado por participar da nossa apresentação no Cedtec!<br />
-    Preencha seus dados abaixo para concorrer a uma JBL Go 4.<br />
-    O prêmio será enviado para o endereço cadastrado.
-  </p>
-
-  <form id="formulario">
-    <label for="nome">Nome completo:</label>
-    <input type="text" id="nome" name="nome" required />
-
-    <label for="cpf">CPF:</label>
-    <input type="text" id="cpf" name="cpf" required placeholder="000.000.000-00" />
-
-    <label for="email">E-mail:</label>
-    <input type="email" id="email" name="email" required />
-
-    <label for="telefone">Telefone:</label>
-    <input type="tel" id="telefone" name="telefone" required />
-
-    <label for="endereco">Endereço para envio:</label>
-    <textarea id="endereco" name="endereco" rows="3" required></textarea>
-
-    <div class="cookies">
-      <input type="checkbox" id="cookies" required />
-      <label for="cookies">Concordo com os termos e autorizo o uso de meus dados</label>
-    </div>
-
-    <button type="submit">Quero minha JBL Go 4!</button>
-  </form>
-
-  <!-- POPUP -->
-  <div id="popup">
-    <div id="popup-content">
-      <h2>CAIU DIREITINHO, NÉ?</h2>
-      <p>Esse "sorteio" era uma simulação. Se fosse real, seus dados já estariam nas mãos de criminosos.</p>
-      <div class="alerta">
-        Nunca informe seus dados pessoais em sites duvidosos, por mais realistas que pareçam.<br /><br />
-        <em>Proteja-se. Esse site é apenas para fins educativos.</em>
+  <div class="hero-left">
+    <div class="eyebrow">Editor de Vídeos</div>
+    <p class="hero-aka">Conhecido como <span>Dan</span></p>
+    <h1>Daniel<br><em>Bastos</em></h1>
+    <p class="hero-desc">
+      Especialista em conteúdo viral para criadores de alta performance.
+      Cortes que prendem, memes que explodem e edits que fazem o algoritmo trabalhar por você.
+    </p>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-num">+250</span>
+        <span class="stat-label">Projetos</span>
       </div>
-      <button onclick="fecharPopup()">Aprendi a lição</button>
+      <div class="stat-item">
+        <span class="stat-num">100M+</span>
+        <span class="stat-label">Views</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">7+</span>
+        <span class="stat-label">Anos</span>
+      </div>
+    </div>
+    <div class="hero-ctas">
+      <a href="https://wa.me/5527997520727" target="_blank" class="btn-primary">↗ Solicitar Orçamento</a>
+      <a href="#portfolio" class="btn-ghost">Ver Trabalhos</a>
     </div>
   </div>
 
-  <script>
-    document.getElementById('formulario').addEventListener('submit', function (e) {
-      e.preventDefault()
-      let popup = document.getElementById('popup')
-      popup.style.display = 'flex'
-      void popup.offsetWidth
-      popup.style.animation = 'fadeIn 0.5s ease forwards'
-    })
+  <div class="hero-right">
+    <div class="photo-frame">
+      <img src="sua-foto.jpeg" alt="Daniel Bastos">
+      <div class="photo-badge">
+        <p>Vitória, ES</p>
+        <span>Brasil</span>
+      </div>
+    </div>
+  </div>
 
-    function fecharPopup() {
-      let popup = document.getElementById('popup')
-      popup.style.animation = 'none'
-      popup.style.display = 'none'
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</header>
+
+<!-- ─── SERVICES STRIP ─────────────────────────── -->
+<div class="services-strip">
+  <div class="services-grid">
+    <div class="service-item reveal">
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <div class="service-name">Edits Virais</div>
+      <p class="service-text">Conteúdo agressivo e retentivo para Instagram e TikTok</p>
+    </div>
+    <div class="service-item reveal reveal-delay-1">
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01M8 12h.01M16 12h.01"/><path d="M6 18v2M18 18v2"/></svg>
+      <div class="service-name">Gameplay & Lives</div>
+      <p class="service-text">Cortes dinâmicos com fluidez, timing e identidade</p>
+    </div>
+    <div class="service-item reveal reveal-delay-2">
+      <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      <div class="service-name">Memes</div>
+      <p class="service-text">Humor com alto potencial de compartilhamento</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PORTFOLIO ──────────────────────────────── -->
+<section id="portfolio">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-label">Portfólio</div>
+      <h2 class="section-title">Edits<br><em>Virais</em></h2>
+    </div>
+    <p class="section-desc">Conteúdos de alta retenção editados para <strong>Paulinho O Loko</strong>.</p>
+  </div>
+  <div class="videos reveal">
+    <a class="reel-card" href="https://www.instagram.com/reel/DLDLuhQOKkz/" target="_blank">
+      <span class="reel-num">01</span>
+      <div class="reel-info"><span class="reel-title">Edit Viral — Retenção Máxima</span><span class="reel-meta">Instagram Reels • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DTi_QKvlLDX/" target="_blank">
+      <span class="reel-num">02</span>
+      <div class="reel-info"><span class="reel-title">Edit Viral — Alto Impacto</span><span class="reel-meta">Instagram Reels • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DTQyGrgCUBk/" target="_blank">
+      <span class="reel-num">03</span>
+      <div class="reel-info"><span class="reel-title">Edit Viral — Corte Agressivo</span><span class="reel-meta">Instagram Reels • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DSGI99qjXu2/" target="_blank">
+      <span class="reel-num">04</span>
+      <div class="reel-info"><span class="reel-title">Edit Viral — Formato Curto</span><span class="reel-meta">Instagram Reels • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="section-header reveal">
+    <div>
+      <div class="section-label">Gameplay</div>
+      <h2 class="section-title">Cortes de<br><em>Lives</em></h2>
+    </div>
+    <p class="section-desc">Timing perfeito, ritmo e identidade visual em cada corte.</p>
+  </div>
+  <div class="videos reveal">
+    <a class="reel-card" href="https://www.instagram.com/reel/DOZcK0cDqHq/" target="_blank">
+      <span class="reel-num">01</span>
+      <div class="reel-info"><span class="reel-title">Corte de Live — Momento Épico</span><span class="reel-meta">Gameplay • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DRNjIhBDjjV/" target="_blank">
+      <span class="reel-num">02</span>
+      <div class="reel-info"><span class="reel-title">Corte de Live — Reação Viral</span><span class="reel-meta">Gameplay • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DRV8Nd9EZV_/" target="_blank">
+      <span class="reel-num">03</span>
+      <div class="reel-info"><span class="reel-title">Corte de Live — Timing Perfeito</span><span class="reel-meta">Gameplay • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DRSEUCRF_j6/" target="_blank">
+      <span class="reel-num">04</span>
+      <div class="reel-info"><span class="reel-title">Corte de Live — Clipe Dinâmico</span><span class="reel-meta">Gameplay • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="section-header reveal">
+    <div>
+      <div class="section-label">Humor</div>
+      <h2 class="section-title">Memes<br><em>Virais</em></h2>
+    </div>
+    <p class="section-desc">Humor que conecta, engaja e faz o público compartilhar.</p>
+  </div>
+  <div class="videos reveal">
+    <a class="reel-card" href="https://www.instagram.com/reel/DNjPSCzV8FT/" target="_blank">
+      <span class="reel-num">01</span>
+      <div class="reel-info"><span class="reel-title">Meme Viral — Compartilhamento Massivo</span><span class="reel-meta">Humor • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DMv3XoAuiW8/" target="_blank">
+      <span class="reel-num">02</span>
+      <div class="reel-info"><span class="reel-title">Meme Viral — Humor Certeiro</span><span class="reel-meta">Humor • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DNWc2AKO2ky/" target="_blank">
+      <span class="reel-num">03</span>
+      <div class="reel-info"><span class="reel-title">Meme Viral — Alta Retenção</span><span class="reel-meta">Humor • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+    <a class="reel-card" href="https://www.instagram.com/reel/DNOdYRKNIaq/" target="_blank">
+      <span class="reel-num">04</span>
+      <div class="reel-info"><span class="reel-title">Meme Viral — Engajamento Total</span><span class="reel-meta">Humor • Paulinho O Loko</span></div>
+      <span class="reel-arrow">↗</span>
+    </a>
+  </div>
+</section>
+
+<!-- ─── PROVA SOCIAL ───────────────────────────── -->
+<div class="divider"></div>
+
+<section class="proof-section">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-label">Prova Social</div>
+      <h2 class="section-title">O que dizem<br><em>sobre mim</em></h2>
+    </div>
+  </div>
+  <div class="proof-inner reveal">
+   <div class="proof-video-wrap">
+  <video src="provasocial.mp4" autoplay muted loop playsinline controls></video>
+
+  
+</div>
+    <div class="proof-content">
+      <p class="proof-quote">
+        "O Dan é monstro nas edições — trabalha comigo e entrega coisa de outro nível."
+      </p>
+      <div class="proof-author">
+        <div class="proof-author-dot"></div>
+        <div>
+          <div class="proof-author-name">Paulinho O Loko</div>
+          <div class="proof-author-role">Criador de Conteúdo</div>
+        </div>
+      </div>
+      <a href="https://www.tiktok.com/@danzv7s" target="_blank" class="tiktok-card">
+        <div class="tiktok-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/></svg>
+        </div>
+        <div class="tiktok-info">
+          <div class="tiktok-handle">@danzv7s</div>
+          <div class="tiktok-label">Fan page — Edits do Paulinho O Loko</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CONTACT ────────────────────────────────── -->
+<div class="contact-section reveal">
+  <div class="contact-eyebrow">— Vamos trabalhar juntos</div>
+  <h2 class="contact-title">Pronto para<br><em>Viralizar?</em></h2>
+  <p class="contact-sub">
+    Se você quer conteúdo que retém, engaja e converte,
+    vamos conversar. Respondo rápido.
+  </p>
+  <div class="contact-links">
+    <a href="https://wa.me/5527997520727" target="_blank" class="btn-primary">↗ Chamar no WhatsApp</a>
+    <a href="https://www.instagram.com/danielb.editor/" target="_blank" class="btn-ghost">Instagram</a>
+  </div>
+</div>
+
+<!-- ─── FOOTER ────────────────────────────────── -->
+<footer>
+  <p>© 2026 Daniel Bastos — Todos os direitos reservados</p>
+  <span class="footer-mark">DB</span>
+</footer>
+
+<a href="https://wa.me/5527997520727" target="_blank" class="wa-float">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+  <span>Entrar em Contato</span>
+</a>
+
+<script>
+const isMobile = window.matchMedia('(hover: none)').matches;
+if (!isMobile) {
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let ringX = 0, ringY = 0, dotX = 0, dotY = 0;
+  document.addEventListener('mousemove', e => {
+    dotX = e.clientX; dotY = e.clientY;
+    dot.style.left = dotX + 'px';
+    dot.style.top = dotY + 'px';
+  });
+  function animateRing() {
+    ringX += (dotX - ringX) * 0.12;
+    ringY += (dotY - ringY) * 0.12;
+    ring.style.left = ringX + 'px';
+    ring.style.top = ringY + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.style.width = '60px'; ring.style.height = '60px'; ring.style.borderColor = 'rgba(200,0,26,0.6)'; });
+    el.addEventListener('mouseleave', () => { ring.style.width = '36px'; ring.style.height = '36px'; ring.style.borderColor = 'rgba(245,240,235,0.5)'; });
+  });
+}
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+const proofVideo = document.getElementById('proofVideo')
+const soundToggle = document.getElementById('soundToggle')
+
+if (proofVideo && soundToggle) {
+
+  soundToggle.addEventListener('click', () => {
+
+    proofVideo.muted = false
+    proofVideo.volume = 1
+
+    proofVideo.play()
+
+    soundToggle.innerHTML = '🔊 Som Ativado'
+
+    setTimeout(() => {
+      soundToggle.style.opacity = '0'
+      soundToggle.style.pointerEvents = 'none'
+    }, 1200)
+
+  })
+  // CONTROLE PREMIUM DO VÍDEO
+const proofVideo = document.querySelector('.proof-video-wrap video')
+
+if (proofVideo) {
+
+  // clique = pausa/play
+  proofVideo.addEventListener('click', () => {
+    if (proofVideo.paused) {
+      proofVideo.play()
+    } else {
+      proofVideo.pause()
     }
-  </script>
+  })
+
+ 
+
+}
+
+}
+
+</script>
+
 </body>
 </html>
